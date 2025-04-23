@@ -35,24 +35,6 @@ Amazon Elastic Container Service (ECS) is a highly scalable and fully managed co
 - **Versions**: Task definitions are versioned, allowing you to roll back to previous configurations if needed.
 - **Use Case**: Defines a single task or a group of containers that work together (e.g., an app container and a log collector).
 
-### 4. Account Settings
-- **Definition**: Account settings in ECS are global configurations applied at the AWS account level, affecting all clusters and tasks in the region.
-- **Key Settings**:
-  - **Service Role**: An IAM role (e.g., `AWSServiceRoleForECS`) that ECS uses to make AWS API calls on your behalf.
-  - **Task IAM Role**: Default IAM role for tasks if not specified in task definitions.
-  - **Execution Role**: Default role for container agent to pull images and manage logs.
-  - **Container Instance Drain Behavior**: Controls how ECS handles instance termination (e.g., draining tasks before stopping instances).
-  - **Tag Resource Level**: Enables or disables tagging for ECS resources (e.g., clusters, tasks).
-  - **Fargate Resource Limits**: Sets default limits for Fargate task resources (e.g., max vCPUs or memory).
-- **Management**: These settings can be viewed and modified via the AWS Management Console, CLI, or SDK under the ECS account settings section.
-- **Impact**: Ensures consistent behavior across all ECS operations and integrates with other AWS services (e.g., CloudWatch for logging).
-
-### Additional Context
-- ECS integrates with other AWS services like Elastic Load Balancer (ELB) for traffic distribution, Auto Scaling for dynamic scaling, and CloudFormation for infrastructure as code.
-- Fargate simplifies operations by eliminating the need to manage EC2 instances, while EC2 offers more control for custom configurations.
-
-If you need more specific details or examples (e.g., a sample task definition), feel free to ask! For the latest updates or real-time information, I can offer to search the web if needed.
-
 ---
 
 ### 1. Service
@@ -143,3 +125,19 @@ If you need more specific details or examples (e.g., a sample task definition), 
 - **Use Case**: Handles traffic spikes (e.g., e-commerce during sales) or reduces costs during low usage.
 - **Configuration**: Set via ECS console, CLI, or CloudFormation with policies and alarms.
 ---
+
+### Account Settings
+- **Definition**: Account settings in ECS are global configurations applied at the AWS account level, affecting all clusters and tasks in the region.
+- **Key Settings**:
+  - **Service Role**: An IAM role (e.g., `AWSServiceRoleForECS`) that ECS uses to make AWS API calls on your behalf.
+  - **Task IAM Role**: Default IAM role for tasks if not specified in task definitions.
+  - **Execution Role**: Default role for container agent to pull images and manage logs.
+  - **Container Instance Drain Behavior**: Controls how ECS handles instance termination (e.g., draining tasks before stopping instances).
+  - **Tag Resource Level**: Enables or disables tagging for ECS resources (e.g., clusters, tasks).
+  - **Fargate Resource Limits**: Sets default limits for Fargate task resources (e.g., max vCPUs or memory).
+- **Management**: These settings can be viewed and modified via the AWS Management Console, CLI, or SDK under the ECS account settings section.
+- **Impact**: Ensures consistent behavior across all ECS operations and integrates with other AWS services (e.g., CloudWatch for logging).
+
+### Additional Context
+- ECS integrates with other AWS services like Elastic Load Balancer (ELB) for traffic distribution, Auto Scaling for dynamic scaling, and CloudFormation for infrastructure as code.
+- Fargate simplifies operations by eliminating the need to manage EC2 instances, while EC2 offers more control for custom configurations.
