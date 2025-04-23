@@ -56,7 +56,7 @@ If you need more specific details or examples (e.g., a sample task definition), 
 ---
 
 ### 1. Service
-- **Definition**: An ECS service is a construct that ensures a specified number of task instances are running and healthy within a cluster. It manages the deployment, scaling, and maintenance of tasks.
+- **Definition**: We can use an Amazon ECS service to run and maintain a specified number of instances of a task definition simultaneously in an Amazon ECS cluster. If one of your tasks fails or stops, the Amazon ECS service scheduler launches another instance of your task definition to replace it. This helps maintain your desired number of tasks in the service.
 - **Key Features**:
   - **Desired Count**: Specifies how many task instances should run simultaneously.
   - **Load Balancing**: Integrates with Application Load Balancer (ALB) or Network Load Balancer (NLB) to distribute traffic across tasks.
