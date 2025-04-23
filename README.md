@@ -56,7 +56,7 @@ If you need more specific details or examples (e.g., a sample task definition), 
 ---
 
 ### 1. Service
-- **Definition**: We can use an Amazon ECS service to run and maintain a specified number of instances of a task definition simultaneously in an Amazon ECS cluster. If one of your tasks fails or stops, the Amazon ECS service scheduler launches another instance of your task definition to replace it. This helps maintain your desired number of tasks in the service.
+- **Definition**: An Amazon ECS service runs and maintains your desired number of tasks simultaneously in an Amazon ECS cluster. How it works is that, if any of your tasks fail or stop for any reason, the Amazon ECS service scheduler launches another instance based on your task definition. It does this to replace it and thereby maintain your desired number of tasks in the service.
 - **Key Features**:
   - **Desired Count**: Specifies how many task instances should run simultaneously.
   - **Load Balancing**: Integrates with Application Load Balancer (ALB) or Network Load Balancer (NLB) to distribute traffic across tasks.
@@ -66,7 +66,7 @@ If you need more specific details or examples (e.g., a sample task definition), 
 - **Configuration**: Defined in the ECS console, CLI, or SDK with settings like service name, task definition, and networking (VPC/subnets).
 
 ### 2. Task
-- **Definition**: A task is a logical unit of work in ECS that represents one or more containers running together on a container instance or Fargate. It is instantiated from a task definition.
+- **Definition**: A task is the instantiation(the process of creating a running container based on a task definition) of a task definition within a cluster. After you create a task definition for your application within Amazon ECS, you can specify the number of tasks to run on your cluster.
 - **Key Features**:
   - **Container Grouping**: Tasks can include multiple containers that share resources and dependencies (e.g., an app and its sidecar log collector).
   - **Lifecycle**: Launched, monitored, and terminated based on service or manual triggers.
