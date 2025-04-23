@@ -37,7 +37,7 @@ Amazon Elastic Container Service (ECS) is a highly scalable and fully managed co
 
 ---
 
-### 1. Service
+### 4. Service
 - **Definition**: An Amazon ECS service runs and maintains your desired number of tasks simultaneously in an Amazon ECS cluster. How it works is that, if any of your tasks fail or stop for any reason, the Amazon ECS service scheduler launches another instance based on your task definition. It does this to replace it and thereby maintain your desired number of tasks in the service.
 - **Key Features**:
   - **Desired Count**: Specifies how many task instances should run simultaneously.
@@ -47,7 +47,7 @@ Amazon Elastic Container Service (ECS) is a highly scalable and fully managed co
 - **Use Case**: Ideal for long-running applications (e.g., web servers) where availability and scalability are critical.
 - **Configuration**: Defined in the ECS console, CLI, or SDK with settings like service name, task definition, and networking (VPC/subnets).
 
-### 2. Task
+### 5. Task
 - **Definition**: A task is the instantiation(the process of creating a running container based on a task definition) of a task definition within a cluster. After you create a task definition for your application within Amazon ECS, you can specify the number of tasks to run on your cluster.
 - **Key Features**:
   - **Container Grouping**: Tasks can include multiple containers that share resources and dependencies (e.g., an app and its sidecar log collector).
@@ -56,18 +56,7 @@ Amazon Elastic Container Service (ECS) is a highly scalable and fully managed co
 - **Use Case**: Used for both stateless applications (e.g., batch jobs) and stateful services when paired with volumes.
 - **Management**: Tasks are scheduled by ECS based on resource availability and placement strategies.
 
-### 3. Task Definition
-- **Definition**: A task definition is a JSON or YAML template that describes how Docker containers should run as a task in ECS. It’s a reusable configuration.
-- **Key Elements**:
-  - **Container Definitions**: Specifies image, CPU/memory, ports, environment variables, and commands for each container.
-  - **Task Role**: IAM role for tasks to access AWS services (e.g., S3, DynamoDB).
-  - **Execution Role**: IAM role for ECS to pull images and send logs to CloudWatch.
-  - **Volumes**: Defines persistent storage (e.g., EBS, EFS) or bind mounts.
-  - **Network Mode**: Options include `awsvpc`, `bridge`, or `host`.
-- **Versions**: Task definitions are versioned, allowing rollbacks or updates.
-- **Use Case**: Defines a single task or a multi-container application (e.g., a web app with a database container).
-
-### 4. Container Definitions
+### 6. Container Definitions
 - **Definition**: A subsection within a task definition that specifies the properties of individual containers in a task.
 - **Key Properties**:
   - **Image**: The Docker image URI (e.g., from ECR or Docker Hub).
@@ -79,7 +68,7 @@ Amazon Elastic Container Service (ECS) is a highly scalable and fully managed co
 - **Use Case**: Allows fine-grained control over each container’s runtime behavior within a task.
 - **Flexibility**: Multiple container definitions can be grouped in one task for interdependent services.
 
-### 5. Capacity Provider
+### 7. Capacity Provider
 - **Definition**: A capacity provider is a mechanism to manage compute capacity for ECS tasks, determining where and how tasks are placed (e.g., EC2 instances or Fargate).
 - **Types**:
   - **EC2**: Uses a pool of EC2 instances registered to the cluster.
@@ -91,7 +80,7 @@ Amazon Elastic Container Service (ECS) is a highly scalable and fully managed co
 - **Use Case**: Ensures tasks have sufficient resources and optimizes costs (e.g., using Fargate for sporadic workloads, EC2 for steady loads).
 - **Management**: Configured via the ECS console or CLI, linked to clusters.
 
-### 6. Deployment Strategy
+### 8. Deployment Strategy
 - **Definition**: A deployment strategy dictates how ECS rolls out new task definitions to replace old ones, minimizing downtime and ensuring stability.
 - **Types**:
   - **Rolling Update**: Gradually replaces tasks with the new version, maintaining the desired count.
@@ -103,7 +92,7 @@ Amazon Elastic Container Service (ECS) is a highly scalable and fully managed co
 - **Use Case**: Critical for production environments to avoid service interruptions (e.g., updating a web app without downtime).
 - **Integration**: Works with ALB for traffic shifting in blue/green or canary deployments.
 
-### 7. Fargate
+### 9. Fargate
 - **Definition**: AWS Fargate is a serverless compute engine for ECS (and EKS) that allows you to run containers without managing the underlying EC2 instances.
 - **Key Features**:
   - **No Server Management**: AWS handles provisioning, patching, and scaling of infrastructure.
@@ -113,7 +102,7 @@ Amazon Elastic Container Service (ECS) is a highly scalable and fully managed co
 - **Use Case**: Ideal for teams wanting to focus on application development rather than infrastructure (e.g., microservices or event-driven apps).
 - **Limitations**: Less control over the host OS and higher costs for sustained workloads compared to EC2.
 
-### 8. Auto Scaling
+### 10. Auto Scaling
 - **Definition**: Auto scaling in ECS automatically adjusts the number of tasks or EC2 instances based on demand, ensuring performance and cost efficiency.
 - **Components**:
   - **Task Auto Scaling**: Adjusts the desired count of tasks in a service using CloudWatch metrics (e.g., CPU utilization, request count).
