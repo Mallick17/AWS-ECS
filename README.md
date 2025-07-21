@@ -700,3 +700,132 @@ You update ECS service to point to:
 | Lifecycle                      | ECS handles provisioning, testing, shifting, and blue task removal     |
 
 </details>
+
+<details>
+   <summary>Step-by-Step Guide to Migrate an ECS service from Rolling Update to Native Blue/Green Deployment</summary>
+
+Here’s a **clear, step-by-step guide** to migrate an ECS service from rolling update to native Blue/Green deployment, addressing ALB and target group.
+
+## 1️⃣ Prerequisites and Initial Checks
+
+- **Wait for any ongoing ECS deployments to finish.**
+- Confirm your service is currently using _rolling update_ deployment with an Application Load Balancer (ALB) and at least one target group.
+- Ensure you have the necessary IAM permissions for ECS and load balancer actions[2].
+- Verify your ALB and target groups have proper health check paths (e.g., `/health`)[3].
+
+## 2️⃣ Should You Use the Same ALB or Multiple?
+
+- **Use the same ALB, but different target groups for blue and green.**
+  - Each service revision (blue/green) will be registered with a different target group.
+  - The ALB listener will route traffic to either the blue or green target group[1][2][6][8].
+  - This is the standard (and recommended) pattern for ECS Blue/Green; no need for separate ALBs unless you have a specific, advanced need.
+
+**Example:**  
+- ALB: `my-app-alb`
+- Target Group 1: `my-app-blue-tg` (current)
+- Target Group 2: `my-app-green-tg` (new)
+
+## 3️⃣ Create the "Alternate" (Green) Target Group (if needed)
+
+- Go to the EC2 console > Target Groups > Create target group.
+- Select **type `ip`** (if using ECS with awsvpc mode).
+- Set protocol/port to match your app (usually HTTP:80).
+- Set the correct VPC.
+- Configure health check path (e.g., `/health`).
+
+## 4️⃣ Adjust Your ALB Listener Rules
+
+- You’ll use listener rules to switch traffic between target groups.
+- The **production rule** should point to your blue target group initially, and will be updated to point to green during deployment.
+- If you want to use **test traffic routing** (headers, paths), you can optionally add listener rules so that *only matching requests* go to green before full cutover[2][1].
+- Make sure your health check settings are appropriate for both target groups (same endpoint for both).
+
+## 5️⃣ Migrate the ECS Service to Blue/Green Deployment
+
+1. **Open ECS console**: https://console.aws.amazon.com/ecs/v2  
+2. **Clusters** > Choose your cluster  
+3. **Services** > Select your service
+
+4. **Update Service**  
+   - Expand **Deployment options**
+   - For **Deployment strategy**, select `Blue/green`[2][8]
+   - Set your **Bake time** (the time both blue and green run after green takes live traffic, e.g., 5 min)
+   - (Optional) Set **Lambda lifecycle hooks** for automation (pre/post scale up, test, production traffic shifts, etc.)
+
+5. **Configure Load Balancer Settings**[2]:
+   - **Target Group (Primary):** Choose current (blue) target group — e.g., `my-app-blue-tg`
+   - **Alternate Target Group:** Choose your green target group — e.g., `my-app-green-tg`
+   - **Production Listener Rule:** Select the rule that will route all prod traffic (usually `/` path or the main rule)
+   - **Test Listener Rule (optional):** Select the rule for routing special traffic (e.g., with header `x-test=true`) to green for testing before full cutover
+
+6. **IAM Role:** Confirm ECS has the service-linked role needed to manage ALB listeners and target groups.
+
+7. **Review & Confirm:** Double-check settings, then click **Update**.
+
+## 6️⃣ How the New Blue/Green Flow Works
+
+After migration, when you update your service with a new task definition:
+
+1. ECS launches green tasks (with the new revision), attaches them to green target group.
+2. **Optionally**: Test requests matching your test listener rule (header/path) will hit green; all other traffic still hits blue[1].
+3. When green passes health checks, ECS rewires the ALB listener to send all production traffic to the green target group instantly (atomic switch—no downtime)[1][2][6].
+4. After **bake time**, if no alarms trigger and green stays healthy, ECS removes blue tasks.
+5. If there’s a problem during bake time, ECS can instantaneously switch traffic back to blue (rollback)[1][6].
+
+## 7️⃣ Health Checks & Listener Rules — What Should You Change?
+
+- **Target Groups:** Both blue and green target groups should:
+  - Use the same health check configuration (endpoint, thresholds).
+  - The health check should be suitable for "readiness" (not just "alive").
+- **Listener Rules:**
+  - Main production rule points to blue, will update to green on deployment.
+  - Optional: Add a header-based or path-based rule if you want to test green with limited traffic first before a production cutover.
+
+**You do NOT need to create a new ALB** unless you want total traffic separation across services/products. Just add the alternate target group and update listener rules as needed.
+
+## 🎯 Example Workflow
+
+1. **Current State:**  
+   - ECS Service: Rolling update, deploys to `my-app-blue-tg`
+   - ALB: Production listener points to `my-app-blue-tg`
+
+2. **Prep for Migration:**  
+   - Create `my-app-green-tg`
+   - Confirm correct health checks
+
+3. **Migrate Service to Blue/Green:**  
+   - Update ECS service for Blue/Green, select both TGs
+
+4. **On Next Update:**  
+   - Deploy new task definition (revision)
+   - ECS launches green tasks in `my-app-green-tg`
+   - (Optional) Test with header/path if configured
+   - ECS switches production rule to `my-app-green-tg` after green passes health checks
+
+5. **Bake Time:**  
+   - Traffic is on green; blue tasks still running in case rollback needed
+
+6. **Completion:**  
+   - ECS stops blue tasks after bake time if all is healthy
+
+## 🔑 Key Tips
+
+- **One ALB, two target groups** per service is standard for blue/green[1][2][6].
+- **Always set health check paths** consistently across both target groups.
+- **Update listener rules** only if you want custom test traffic, otherwise just ensure the main production rule exists.
+- **Bake time is important** for rollback safety—set to a few minutes at least.
+
+Let me know if you want step-by-step screenshots, or a YAML/JSON sample! You’re all set for safe, zero-downtime deployments.
+
+[1] https://docs.aws.amazon.com/AmazonECS/latest/developerguide/blue-green-deployment-how-it-works.html
+[2] https://docs.aws.amazon.com/AmazonECS/latest/developerguide/update-rolling-to-bluegreen.html
+[3] https://docs.aws.amazon.com/AmazonECS/latest/developerguide/create-blue-green.html
+[4] https://aws.amazon.com/blogs/compute/bluegreen-deployments-with-amazon-ecs/
+[5] https://docs.aws.amazon.com/AmazonECS/latest/developerguide/update-bluegreen-to-rolling.html
+[6] https://dev.to/t-kikuc/ecs-native-bluegreen-is-here-with-strong-hooks-and-dark-canary-8ff
+[7] https://cloudonaut.io/ecs-deployment-options/
+[8] https://aws.amazon.com/blogs/aws/accelerate-safe-software-releases-with-new-built-in-blue-green-deployments-in-amazon-ecs/
+[9] https://repost.aws/knowledge-center/codedeploy-ecs-blue-green-deployment
+[10] https://aws.amazon.com/tw/blogs/compute/bluegreen-deployments-with-amazon-ecs/
+   
+</details>
