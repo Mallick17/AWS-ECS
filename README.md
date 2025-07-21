@@ -334,7 +334,7 @@ Here’s how traffic flows across deployment stages:
 
 ## Deployment Visual Diagram
 
-```
+```mermaid
 graph TD
     ALB[Application Load Balancer]
     subgraph Before Deployment
