@@ -387,3 +387,169 @@ By configuring the load balancer, target groups, listeners, and ECS service appr
 
    
 </details>
+
+
+## Required Resources
+
+### 1. Load Balancer
+
+- **Must use Application Load Balancer (ALB)** (or NLB/Service Connect in some cases)[1][6].
+- ALB must have:
+  - At least one **listener** (e.g., port 80 for HTTP)
+  - At least **two target groups**:
+    - *Primary* (blue)
+    - *Alternate* (green)[1][6].
+- Health checks configured for your containers (e.g., `/health`, port 80)
+- Listener **rules** for production and, optionally, test traffic (can be path- or header-based).
+
+**Example**:  
+- ALB Name: `orders-alb`
+- Listener: HTTP (80)
+- Production Rule: path `/` → blue target group
+- Test Rule: header `x-canary: test` → green target group
+
+### 2. IAM Permissions
+
+- The ECS service role and any lifecycle hook Lambda roles must have permission to:
+  - Manage ALB, Target Groups
+  - Update ECS tasks
+  - (For hooks) be invoked by ECS[2].
+
+### 3. ECS Service
+
+- Must be configured during creation for `Blue/Green` deployment type.
+- You’ll specify:
+  - Both target groups
+  - Deployment/bake time
+  - Test traffic routing headers (if using)
+  - Lambda lifecycle hooks (if needed)
+
+### 4. Networking
+
+- VPC with appropriate subnets and security groups for ALB and ECS tasks[2].
+
+## How Blue/Green Works – ECS Native Workflow
+
+### 1. Initial State
+
+- **Blue tasks** are running and ALB sends all production traffic to the blue target group.
+- **Green tasks** do *not* yet exist.
+
+### 2. Deploy New Revision (Green)
+
+- You update the ECS service, choosing the new task definition revision and deployment type “Blue/Green.”
+- ECS provisions green tasks, registers them with the green target group[1][6].
+
+### 3. (Optional) Test Routing
+
+- If you’ve configured test rules (matching a header or path), requests with those criteria are routed to green[1][6].
+- All normal traffic stays on blue.
+
+### 4. Health Checks & Validation
+
+- ALB health checks green targets.
+- ECS waits for green targets to be healthy before shifting traffic.
+
+### 5. Traffic Shifting (Cut-over)
+
+- When ready, ECS updates the ALB listener so **all production traffic** now goes to green (immediate cut-over for now, not progressive)[6].
+- Both blue and green tasks run during "bake time" after shift.
+
+### 6. Bake Time & Monitoring
+
+- ECS observes both blue and green tasks.
+- If health checks fail, you can roll back to blue instantly.
+
+### 7. Complete/Rollback
+
+- If green is healthy after bake time, ECS stops blue tasks and green is now live.
+- If issues, ECS restores blue to production.
+
+## Creating a Blue/Green Deployment – Two Scenarios
+
+### A. For Existing Clusters/Services
+
+You **cannot switch an existing ECS “Rolling update” service** to blue/green *in-place*.  
+**You must create a new service with the blue/green deployment type.**  
+1. Go to your ECS Cluster.
+2. Click **Create Service**.
+3. Choose:
+    - Launch type (EC2/Fargate)
+    - Task definition (current revision is “blue”)
+    - Deployment type: **Blue/Green**
+    - Attach your ALB, select two target groups (existing blue, new green)
+    - Set bake time, test routing rules (header/path), and Lambda lifecycle hooks as needed
+    - Configure number of desired tasks, etc.
+4. Deploy.  
+5. Once new service is stable, retire/cleanup the old rolling-update service.
+
+**Tip:** You only need to create new target group(s) for the green revision; the blue group can be reused from your current service[6].
+
+### B. From Scratch (New Service Example)
+
+**1. Prepare Networking**
+- Create VPC, subnets, security groups.
+
+**2. Create Target Groups (via EC2 > Load Balancing > Target Groups)**
+- `orders-blue-tg`
+- `orders-green-tg`
+- Set health check path `/health`
+
+**3. Create Application Load Balancer**
+- Attach to subnets and security groups.
+- Create listener (HTTP 80).
+- Create two rules:
+    - Default/prod: `/` or all traffic → blue (for now)
+    - (optional) Test traffic: header/path → green
+
+**4. Register Task Definition**
+- Define your container, ports, health check.
+
+**5. Create ECS Service**
+- Cluster: pick or create new
+- Task definition: your app
+- Deployment type: **Blue/Green**
+- Assign ALB, specify both target groups
+- Set bake time (e.g., 5 minutes)
+- Optionally, set Lambda hooks for custom lifecycle checks
+- Set scaling and desired task count
+
+**6. Deploy!**
+- ECS creates blue.
+- When you update to a new task revision, ECS provisions green tasks and runs the blue/green workflow automatically.
+
+## Example
+
+### Imagine
+
+- You run a Node.js API.
+- You set up ALB, listeners, two target groups.
+- ECS Service: deployment type = blue/green; task rev 1 = blue.
+
+#### Scenario: Update to Revision 2 (New Node.js Release)
+
+- Update ECS service with new task definition (rev 2).
+- ECS creates green tasks, points them to green target group.
+- QA uses requests like: `curl -H "x-canary: true" ...` to hit green.
+- Once you confirm green is healthy (via health checks/test traffic), ECS switches all production requests to green.
+- Both rev 1 & rev 2 are running briefly (bake time).
+- If no errors, ECS removes blue tasks; if errors, ECS returns prod traffic to blue instantly.
+
+## Visual Workflow Table
+
+| Phase                 | Blue Tasks | Green Tasks | ALB Prod Traffic | ALB Test Traffic | Bake Time | Rollback Possible |
+|-----------------------|------------|-------------|------------------|------------------|-----------|-------------------|
+| Initial               | ✔️          |             | ✔️ (blue)        |                  |           |                   |
+| Green deployment      | ✔️          | ✔️           | ✔️ (blue)        | ✔️ (test rules)  |           |                   |
+| Health check & test   | ✔️          | ✔️           | ✔️ (blue)        | ✔️ (test rules)  |           |                   |
+| Prod traffic shift    | ✔️          | ✔️           | ✔️ (green)       | ✔️ (test rules)  | ✔️        | ✔️                |
+| Bake time monitoring  | ✔️          | ✔️           | ✔️ (green)       | ✔️ (test rules)  | ✔️        | ✔️                |
+| Complete success      |            | ✔️           | ✔️ (green)       | ✔️ (test rules)  |           |                   |
+| Rollback (if needed)  | ✔️          | ✔️/removed   | ✔️ (blue)        | ✔️ (test rules)  |           |                   |
+
+## Key Considerations & Limitations
+
+- **Resource usage:** Both blue & green run during deployment—plan capacity accordingly[1].
+- **Auto Scaling:** Not blocked, but deployment may fail if there's scaling pressure[1].
+- **Traffic shifting:** ECS natively supports only immediate, all-at-once shift (not canary or linear—yet)[1][6].
+- **Rollback:** ECS keeps blue running during and after cutover until bake time expires for easy rollback[1][6].
