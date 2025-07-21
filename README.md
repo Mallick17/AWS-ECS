@@ -352,7 +352,6 @@ graph TD
         BlueTG -.-> X[Blue Tasks Terminated]
     end
 
-    style X fill=#ffdddd,stroke=#ff0000,stroke-width=2px
 ```
 
 ---
