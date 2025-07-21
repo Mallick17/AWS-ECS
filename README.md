@@ -389,6 +389,8 @@ By configuring the load balancer, target groups, listeners, and ECS service appr
 </details>
 
 
+---
+
 ## Required Resources
 
 ### 1. Load Balancer
@@ -554,6 +556,7 @@ You **cannot switch an existing ECS “Rolling update” service** to blue/green
 - **Traffic shifting:** ECS natively supports only immediate, all-at-once shift (not canary or linear—yet)[1][6].
 - **Rollback:** ECS keeps blue running during and after cutover until bake time expires for easy rollback[1][6].
 
+---
 
 <details>
    <summary>Frequent Q&A and Doubts</summary>
