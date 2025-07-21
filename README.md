@@ -553,3 +553,147 @@ You **cannot switch an existing ECS “Rolling update” service** to blue/green
 - **Auto Scaling:** Not blocked, but deployment may fail if there's scaling pressure[1].
 - **Traffic shifting:** ECS natively supports only immediate, all-at-once shift (not canary or linear—yet)[1][6].
 - **Rollback:** ECS keeps blue running during and after cutover until bake time expires for easy rollback[1][6].
+
+
+<details>
+   <summary>Frequent Q&A and Doubts</summary>
+
+## ✅ What You're Doing
+> ✅ You are using **one ECS service**, and handling **Blue/Green deployments** by creating new **task definition revisions** (v1 → v2 → v3, etc.).  
+> ✅ The earlier revision (e.g., v1) is Blue, and the next revision (e.g., v2 or v3) becomes Green.
+
+## 🟨 1. Does the Green Task Definition Get Created Automatically?
+**No — you must trigger the update manually.**
+
+- When you create a new task definition revision (say, v2), the ECS service using the Blue/Green deployment strategy does **not automatically** detect and deploy it.
+- You must manually update the ECS service to **point to the new task definition revision**.
+- Once updated, ECS will:
+  - Launch tasks using the new revision (green)
+  - Register them with the green/alternate target group
+  - Start the full blue/green deployment lifecycle (test traffic, health checks, traffic shift, bake time)
+
+> ✅ So yes — **you must manually update the ECS service to use the new revision**.
+
+## 🟩 2. How Do Target Groups Work in Blue/Green?
+
+Each Blue/Green ECS service has **two target groups:**
+
+| Type            | Description                                   | ECS Behavior |
+|-----------------|-----------------------------------------------|--------------|
+| ✅ Primary TG   | Used by Blue (current version) tasks          | Existing     |
+| ✅ Alternate TG | Used by Green (new revision) during deploy    | ECS uses it for green tasks |
+
+So, when you created the service with deployment type `BLUE_GREEN`, you **attached two target groups** — one for Blue, one for Green.
+
+> These target group mappings are managed **at the ECS Service level** — not in the task definition.
+
+### ❓ Do I Need to Attach A Target Group in the Task Definition?
+
+✅ **No.**  
+You do NOT assign or associate target groups in the task definition itself.
+
+Instead:
+- The ECS **service (not task definition)** is configured with:
+  - Primary target group: ECS uses it for Blue
+  - Alternate target group: ECS uses it for Green
+
+So, your **new task definition revision (Green)** will automatically be used with the **alternate target group**, as long as you:
+- Update the ECS service to use that revision
+- Have already defined both target groups in the service config
+
+> ✅ Task definitions just define containers, ports, etc.  
+> ❌ They don’t "know" about load balancer or target groups directly.
+
+## 🛠️ 3. How Do I Attach the Green Target Group?
+
+Done while creating the **ECS service** (Blue/Green Deployment type):
+
+When you create or update the ECS service:
+- In the console, you choose:
+  - Load balancer: existing ALB
+  - Primary target group: points to Blue version (current)
+  - Alternate target group: ECS will use this automatically for Green revision during each deployment
+
+You don’t need to attach it again when you update to a new task definition revision — ECS handles it.
+
+> ✅ This setup is one-time per service
+> 🔁 ECS handles registering Blue/Green revisions to the right target groups
+
+## 🔁 4. How Do I Switch Traffic From Blue to Green?
+
+It’s automatic, as part of the ECS Blue/Green deployment workflow.  
+Here’s how it happens when you update the ECS service:
+
+1. You update the **service** to use a new **task definition revision** (e.g., v3).
+2. ECS launches **Green** tasks using this revision.
+3. Green tasks are registered to the **Alternate (green) target group**.
+4. ECS waits for health checks to pass on green tasks.
+5. ECS shifts **all production traffic** from:
+    - Blue target group → Green target group (ALB listener rule is updated automatically).
+6. You enter the **bake time** phase — safety wait period
+    - If issues are found (via alarms or failures), ECS can rollback to Blue (traffic re-switches back).
+    - If no issues, ECS **terminates blue** tasks.
+
+> ✅ So YES — ECS automatically shifts the traffic from blue to green **once health checks pass** after updating the service.
+
+## 🧠 Recap: Your Setup & What You Need To Do
+
+### 🔧 Your Setup:
+
+- One ECS service → Blue/Green deployment type
+- Two target groups:
+  - Primary → Blue
+  - Alternate → Green
+- ALB listener → points initially to primary TG
+- You’ve already deployed task definition v1 (Blue)
+- You create task definition v2 (Green)
+
+### 👉 What You Need to Do:
+
+1. **Update ECS service**, choose:
+   - New task definition revision = v2
+   - Bake time (e.g., 5 or 10 min)
+   - Optional: test traffic rules (e.g., via headers)
+
+2. ECS will now:
+   - Launch green tasks (v2)
+   - Register them with the **alternate** target group
+   - Auto route test traffic to green (if configured)
+   - Run health checks on green
+   - ✅ Auto-switch production traffic from blue → green when healthy
+   - Monitor during bake time
+   - Remove blue if no failures
+
+## 🎯 Real-World Example
+
+You have:
+
+- ECS Service: `orders-api-service`
+- Task Rev 14 = Blue
+- Task Rev 15 = created as the new revision (Green)
+  
+You update ECS service to point to:
+- Task Rev: 15
+- Deploy mode: Blue/Green
+- Set target groups (already configured in service)
+- ECS starts deployment
+
+✅ ECS logic:
+
+- Registers new tasks from Rev 15 with green TG
+- When healthy, switches ALB Rule → green TG
+- Retains blue tasks during 5 min bake time
+- Removes blue services if no issues
+
+## ⚠️ Key Points to Remember
+
+| Topic                          | Summary                                                                 |
+|--------------------------------|-------------------------------------------------------------------------|
+| Task Definition Revisions      | You must manually update the ECS service to use the new revision       |
+| Target Group Assignment        | Done via ECS service configuration — not inside task definition         |
+| Load Balancer Target Switching | ECS updates listener rule to point to green target group automatically |
+| Traffic Cut-over               | Happens when green targets pass health checks                          |
+| Requires Two Target Groups     | Primary = blue, Alternate = green                                      |
+| Lifecycle                      | ECS handles provisioning, testing, shifting, and blue task removal     |
+
+</details>
