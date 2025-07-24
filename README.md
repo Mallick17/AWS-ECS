@@ -460,7 +460,10 @@ By configuring the load balancer, target groups, listeners, and ECS service appr
 - If green is healthy after bake time, ECS stops blue tasks and green is now live.
 - If issues, ECS restores blue to production.
 
-## Creating a Blue/Green Deployment – Two Scenarios
+## Creating a Blue/Green Deployment – Two Scenarios (For Existing Clusters/Services & From Scratch)
+
+<details>
+   <summary>A. Click to view the summary of how to create for Existing Clusters/Services</summary>
 
 ### A. For Existing Clusters/Services
 
@@ -479,6 +482,12 @@ You **cannot switch an existing ECS “Rolling update” service** to blue/green
 5. Once new service is stable, retire/cleanup the old rolling-update service.
 
 **Tip:** You only need to create new target group(s) for the green revision; the blue group can be reused from your current service[6].
+
+</details>
+
+
+<details>
+   <summary>B. Click to view the summary of how to create from scratch</summary>
 
 ### B. From Scratch (New Service Example)
 
@@ -512,6 +521,8 @@ You **cannot switch an existing ECS “Rolling update” service** to blue/green
 **6. Deploy!**
 - ECS creates blue.
 - When you update to a new task revision, ECS provisions green tasks and runs the blue/green workflow automatically.
+
+</details>
 
 ## Example
 
