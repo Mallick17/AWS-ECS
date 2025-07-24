@@ -826,7 +826,7 @@ An Amazon ECS infrastructure IAM role for load balancers allows Amazon ECS to ma
 7. **Review & Confirm:** Double-check settings, then click **Update**.
 
 <details>
-   <summary>Click to view the screenshot of the settings</summary>
+   <summary>Click to view the screenshot of the settings and the results</summary>
 
 ### Configuration
 <img width="2880" height="6582" alt="image" src="https://github.com/user-attachments/assets/b5bc27ba-8e23-4e8b-bf92-fd6a09ce6b09" />
