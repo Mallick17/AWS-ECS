@@ -50,50 +50,50 @@ With this method, you test the green version first. If everything looks good, yo
 ### 6 Easy Steps in the Deployment Process
 
 1. **Preparation**
-   Set up the new version (**green**) alongside the current one (**blue**). ECS gets everything ready like new service versions and target groups.
+   - Set up the new version (**green**) alongside the current one (**blue**). ECS gets everything ready like new service versions and target groups.
 
 2. **Deployment**
-   ECS starts running the green version in the background. The blue version still handles all user traffic.
+   - ECS starts running the green version in the background. The blue version still handles all user traffic.
 
 3. **Testing**
-   ECS can send test traffic to the green version to make sure it works. Regular users still connect to the blue version.
+   - ECS can send test traffic to the green version to make sure it works. Regular users still connect to the blue version.
 
 4. **Traffic Switch**
-   ECS slowly or instantly shifts real user traffic from blue to green — based on your settings.
+   - ECS slowly or instantly shifts real user traffic from blue to green — based on your settings.
 
 5. **Monitoring**
-   ECS watches the new green version closely. If there’s a problem, it can automatically roll back to blue.
+   - ECS watches the new green version closely. If there’s a problem, it can automatically roll back to blue.
 
 6. **Completion**
-   If everything looks good, ECS can remove the old blue version. Or you can keep it a bit longer just in case.
+   - If everything looks good, ECS can remove the old blue version. Or you can keep it a bit longer just in case.
 
 ---
 
 ### Blue/Green Deployment Workflow (Simple Overview)
 
 1. **Start**
-   All users go to the blue version. The green version is set up but not getting traffic.
+   - All users go to the blue version. The green version is set up but not getting traffic.
 
 2. **Create Green**
-   ECS launches the green tasks and adds them to a new target group (a group of servers).
+   - ECS launches the green tasks and adds them to a new target group (a group of servers).
 
 3. **Health Checks**
-   ECS checks if the green version is running properly and is healthy.
+   - ECS checks if the green version is running properly and is healthy.
 
 4. **Test Traffic (Optional)**
-   ECS can send some test requests to green (like special test headers) to confirm it works.
+   - ECS can send some test requests to green (like special test headers) to confirm it works.
 
 5. **Switch Traffic**
-   ECS moves real traffic to green — all at once or slowly (your choice).
+   - ECS moves real traffic to green — all at once or slowly (your choice).
 
 6. **Watch Closely**
-   ECS checks health, logs, and alarms. If there’s a problem, it switches back to blue automatically.
+   - ECS checks health, logs, and alarms. If there’s a problem, it switches back to blue automatically.
 
 7. **Bake Time**
-   Both blue and green versions run for a short while to make sure everything’s fine.
+   - Both blue and green versions run for a short while to make sure everything’s fine.
 
 8. **Finish**
-   Green version becomes the new live app. Blue version can be shut down or kept as a backup.
+   - Green version becomes the new live app. Blue version can be shut down or kept as a backup.
 
 ---
 
