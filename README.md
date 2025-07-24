@@ -388,12 +388,12 @@ By configuring the load balancer, target groups, listeners, and ECS service appr
 
 ### 1. Load Balancer
 
-- **Must use Application Load Balancer (ALB)** (or NLB/Service Connect in some cases)[1][6].
+- **Must use Application Load Balancer (ALB)** (or NLB/Service Connect in some cases).
 - ALB must have:
   - At least one **listener** (e.g., port 80 for HTTP)
   - At least **two target groups**:
     - *Primary* (blue)
-    - *Alternate* (green)[1][6].
+    - *Alternate* (green).
 - Health checks configured for your containers (e.g., `/health`, port 80)
 - Listener **rules** for production and, optionally, test traffic (can be path- or header-based).
 
@@ -755,7 +755,7 @@ You update ECS service to point to:
    - Set your **Bake time** (the time both blue and green run after green takes live traffic, e.g., 5 min)
    - (Optional) Set **Lambda lifecycle hooks** for automation (pre/post scale up, test, production traffic shifts, etc.)
 
-5. **Configure Load Balancer Settings**[2]:
+5. **Configure Load Balancer Settings**:
    - **Target Group (Primary):** Choose current (blue) target group — e.g., `my-app-blue-tg`
    - **Alternate Target Group:** Choose your green target group — e.g., `my-app-green-tg`
    - **Production Listener Rule:** Select the rule that will route all prod traffic (usually `/` path or the main rule)
