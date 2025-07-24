@@ -758,7 +758,70 @@ Here’s a **clear, step-by-step guide** to migrate an ECS service from rolling 
    - **Production Listener Rule:** Select the rule that will route all prod traffic (usually `/` path or the main rule)
    - **Test Listener Rule (optional):** Select the rule for routing special traffic (e.g., with header `x-test=true`) to green for testing before full cutover
 
-6. **IAM Role:** Confirm ECS has the service-linked role needed to manage ALB listeners and target groups.
+6. **IAM Role:** Confirm ECS has the service-linked role needed to manage ALB listeners and target groups. Create the IAM role based on the ECS Blue/Green Deployment documentation and attach it in ecs service while updating it. [Click to find the IAM Policy Documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AmazonECSInfrastructureRolePolicyForLoadBalancers.html)
+
+<details>
+   <summary>Click to view the Policy attached to the role which was created</summary>
+
+## Amazon ECS infrastructure IAM role for load balancers
+An Amazon ECS infrastructure IAM role for load balancers allows Amazon ECS to manage load balancer resources in your clusters on your behalf, and is used when:
+- You want to use blue/green deployments with Amazon ECS. The infrastructure role allows Amazon ECS to manage load balancer resources for your deployments.
+- You need Amazon ECS to create, modify, or delete load balancer resources such as target groups and listeners during deployment operations.
+
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "ELBReadOperations",
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:DescribeListeners",
+                "elasticloadbalancing:DescribeRules",
+                "elasticloadbalancing:DescribeTargetGroups",
+                "elasticloadbalancing:DescribeTargetHealth"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "TargetGroupOperations",
+            "Effect": "Allow",
+            "Action": [
+                "elasticloadbalancing:RegisterTargets",
+                "elasticloadbalancing:DeregisterTargets"
+            ],
+            "Resource": "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*"
+        },
+        {
+            "Sid": "ALBModifyListeners",
+            "Effect": "Allow",
+            "Action": "elasticloadbalancing:ModifyListener",
+            "Resource": [
+                "arn:aws:elasticloadbalancing:*:*:listener/app/*/*/*"
+            ]
+        },
+        {
+            "Sid": "NLBModifyListeners",
+            "Effect": "Allow",
+            "Action": "elasticloadbalancing:ModifyListener",
+            "Resource": [
+                "arn:aws:elasticloadbalancing:*:*:listener/net/*/*/*"
+            ]
+        },
+        {
+            "Sid": "ALBModifyRules",
+            "Effect": "Allow",
+            "Action": "elasticloadbalancing:ModifyRule",
+            "Resource": [
+                "arn:aws:elasticloadbalancing:*:*:listener-rule/app/*/*/*/*"
+            ]
+        }
+    ]
+}
+```
+   
+</details>
 
 7. **Review & Confirm:** Double-check settings, then click **Update**.
 
