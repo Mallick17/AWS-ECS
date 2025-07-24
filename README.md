@@ -132,10 +132,6 @@ With this method, you test the green version first. If everything looks good, yo
 
 ---
 
-Here’s a **very simplified and crystal-clear version** of the **required resources and best practices** for **Amazon ECS Blue/Green Deployments**, written for beginners who want to grow to advanced levels:
-
----
-
 ## What You Need for ECS Blue/Green Deployment
 
 To safely switch from your old app (blue) to your new version (green), **you must use at least one** of these:
@@ -183,10 +179,7 @@ You need one of the following so ECS can shift traffic smoothly:
 
 <details>
    <summary>Application Load Balancer resources for blue/green deployments</summary>
-
-Here is a **clean, detailed, and CLI-free documentation-style summary** of the [**official AWS ECS guide for Blue/Green deployments with Application Load Balancer**](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/alb-resources-for-blue-green.html), containing all the **important concepts, configurations, and components**, excluding CLI commands as requested.
-
----
+   
 
 # Amazon ECS Blue/Green Deployment with Application Load Balancer – Clean Documentation
 
@@ -704,7 +697,6 @@ You update ECS service to point to:
 <details>
    <summary>Step-by-Step Guide to Migrate an ECS service from Rolling Update to Native Blue/Green Deployment</summary>
 
-Here’s a **clear, step-by-step guide** to migrate an ECS service from rolling update to native Blue/Green deployment, addressing ALB and target group.
 
 ## 1️⃣ Prerequisites and Initial Checks
 
