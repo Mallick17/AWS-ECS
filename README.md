@@ -825,6 +825,18 @@ An Amazon ECS infrastructure IAM role for load balancers allows Amazon ECS to ma
 
 7. **Review & Confirm:** Double-check settings, then click **Update**.
 
+<details>
+   <summary>Click to view the screenshot of the settings</summary>
+
+### Configuration
+<img width="2880" height="6582" alt="image" src="https://github.com/user-attachments/assets/b5bc27ba-8e23-4e8b-bf92-fd6a09ce6b09" />
+
+### After Deployment
+<img width="2880" height="4634" alt="image" src="https://github.com/user-attachments/assets/292ed4d4-d456-43ab-8276-bd4a24278c76" />
+
+</details>
+
+
 ## 6️⃣ How the New Blue/Green Flow Works
 
 After migration, when you update your service with a new task definition:
@@ -877,8 +889,6 @@ After migration, when you update your service with a new task definition:
 - **Always set health check paths** consistently across both target groups.
 - **Update listener rules** only if you want custom test traffic, otherwise just ensure the main production rule exists.
 - **Bake time is important** for rollback safety—set to a few minutes at least.
-
-Let me know if you want step-by-step screenshots, or a YAML/JSON sample! You’re all set for safe, zero-downtime deployments.
 
 [1] https://docs.aws.amazon.com/AmazonECS/latest/developerguide/blue-green-deployment-how-it-works.html
 [2] https://docs.aws.amazon.com/AmazonECS/latest/developerguide/update-rolling-to-bluegreen.html
