@@ -541,6 +541,13 @@ You **cannot switch an existing ECS “Rolling update” service** to blue/green
 - Both rev 1 & rev 2 are running briefly (bake time).
 - If no errors, ECS removes blue tasks; if errors, ECS returns prod traffic to blue instantly.
 
+### There are three ways traffic can be shifted during a deployment on Amazon Elastic Container Service (Amazon ECS):
+- Canary – Traffic is shifted in two increments.
+- Linear – Traffic is shifted in equal increments.
+- All-at-once – All traffic is shifted to the updated tasks.
+
+
+
 ## Visual Workflow Table
 
 | Phase                 | Blue Tasks | Green Tasks | ALB Prod Traffic | ALB Test Traffic | Bake Time | Rollback Possible |
